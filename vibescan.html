@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VibeScan — Fun Solana Token Scanner</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --card: #12121a;
+    --accent: #00ff9d;
+    --danger: #ff2a6d;
+    --warning: #ffaa00;
+    --text: #e0e0e0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+  h1 {
+    text-align: center;
+    font-size: 2.4rem;
+    background: linear-gradient(90deg, #00ff9d, #00d4ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  .subtitle { text-align: center; color: #888; margin-bottom: 24px; }
+  .search-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  input {
+    flex: 1;
+    min-width: 280px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 2px solid #333;
+    background: #1a1a24;
+    color: white;
+    font-size: 1rem;
+  }
+  button {
+    padding: 14px 28px;
+    border-radius: 12px;
+    border: none;
+    background: var(--accent);
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  button:hover { filter: brightness(1.1); }
+  .grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #222;
+  }
+  .card h2 { margin-bottom: 12px; font-size: 1.2rem; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .stat { background: #1a1a24; padding: 10px; border-radius: 10px; }
+  .stat span { display: block; font-size: 0.75rem; color: #888; }
+  .stat strong { font-size: 1.1rem; }
+  .chart-area {
+    height: 220px;
+    background: #0d0d14;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #222;
+  }
+  .holders-section, .dev-section {
+    margin-top: 16px;
+    padding: 12px;
+    background: #1a1a24;
+    border-radius: 12px;
+    position: relative;
+  }
+  /* Warning lights */
+  .warning-light {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #333;
+    box-shadow: 0 0 0 transparent;
+    transition: all 0.3s;
+  }
+  .warning-light.active {
+    background: var(--warning);
+    box-shadow: 0 0 20px var(--warning), 0 0 40px var(--warning);
+    animation: pulse 0.6s infinite alternate;
+  }
+  .red-light.active {
+    background: var(--danger);
+    box-shadow: 0 0 20px var(--danger), 0 0 40px var(--danger);
+    animation: pulse 0.4s infinite alternate;
+  }
+  @keyframes pulse {
+    from { transform: scale(1); opacity: 1; }
+    to { transform: scale(1.15); opacity: 0.8; }
+  }
+  /* Emoji guns running on chart */
+  .gun {
+    position: absolute;
+    font-size: 22px;
+    animation: runGun 4s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes runGun {
+    0% { left: -30px; top: 20%; }
+    25% { top: 40%; }
+    50% { top: 15%; }
+    75% { top: 55%; }
+    100% { left: 105%; top: 30%; }
+  }
+  /* Running away emoji */
+  .runner {
+    position: absolute;
+    font-size: 28px;
+    animation: runAway 2.5s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes runAway {
+    0% { left: 40%; top: 50%; opacity: 1; }
+    100% { left: 110%; top: 20%; opacity: 0; }
+  }
+  /* Dancing banners */
+  .banner {
+    position: absolute;
+    background: #ff2a6d;
+    color: white;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    animation: dance 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes dance {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-12px) rotate(5deg); }
+  }
+  .token-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .token-header img { width: 48px; height: 48px; border-radius: 50%; background: #333; }
+  .error { color: #ff5555; text-align: center; padding: 20px; }
+  .demo-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; justify-content: center; }
+  .demo-btns button { background: #333; color: white; padding: 8px 14px; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>VibeScan</h1>
+  <p class="subtitle">Scan a Solana token — make the red flags dance</p>
+
+  <div class="search-box">
+    <input id="mint" placeholder="Paste Solana mint address (e.g. a pump.fun token)" />
+    <button onclick="scan()">Scan Token</button>
+  </div>
+  <div class="demo-btns">
+    <button onclick="loadDemo('EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm')">WIF (demo)</button>
+    <button onclick="loadDemo('DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263')">BONK (demo)</button>
+    <button onclick="loadDemo('So11111111111111111111111111111111111111112')">SOL</button>
+  </div>
+
+  <div id="result" style="display:none; margin-top: 20px;">
+    <div class="grid">
+      <!-- Chart + price card -->
+      <div class="card">
+        <div class="token-header">
+          <img id="logo" src="" alt="" />
+          <div>
+            <h2 id="symbol">—</h2>
+            <div id="name" style="color:#888;font-size:0.9rem"></div>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat"><span>Price</span><strong id="price">—</strong></div>
+          <div class="stat"><span>24h Volume</span><strong id="volume">—</strong></div>
+          <div class="stat"><span>Liquidity</span><strong id="liq">—</strong></div>
+          <div class="stat"><span>24h Change</span><strong id="change">—</strong></div>
+        </div>
+        <div class="chart-area" id="chart">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#555;">Chart zone</div>
+          <!-- guns injected here -->
+        </div>
+      </div>
+
+      <!-- Risk sections -->
+      <div class="card">
+        <h2>Risk Signals</h2>
+        <div class="holders-section">
+          <strong>Holders / Distribution</strong>
+          <div class="warning-light" id="bundleLight"></div>
+          <div id="bundleText" style="margin-top:8px;font-size:0.9rem;color:#aaa;">Waiting for scan...</div>
+          <!-- runner injected here if volume altered -->
+        </div>
+        <div class="dev-section">
+          <strong>Developer</strong>
+          <div class="warning-light red-light" id="devLight"></div>
+          <div id="devText" style="margin-top:8px;font-size:0.9rem;color:#aaa;">Waiting for scan...</div>
+          <!-- banners injected here -->
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="error" class="error" style="display:none;"></div>
+</div>
+
+<script>
+const API = "https://api.dexscreener.com/latest/dex/tokens/";
+
+function formatNum(n) {
+  if (!n) return "—";
+  if (n >= 1e9) return "$" + (n/1e9).toFixed(2) + "B";
+  if (n >= 1e6) return "$" + (n/1e6).toFixed(2) + "M";
+  if (n >= 1e3) return "$" + (n/1e3).toFixed(1) + "K";
+  return "$" + Number(n).toFixed(4);
+}
+
+async function scan(mint) {
+  const address = mint || document.getElementById("mint").value.trim();
+  if (!address) return;
+  document.getElementById("error").style.display = "none";
+  document.getElementById("result").style.display = "none";
+
+  try {
+    const res = await fetch(API + address);
+    const data = await res.json();
+    if (!data.pairs || data.pairs.length === 0) throw new Error("No pairs found for this token");
+
+    // Prefer Solana pair with highest liquidity
+    const pair = data.pairs
+      .filter(p => p.chainId === "solana")
+      .sort((a,b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0))[0]
+      || data.pairs[0];
+
+    renderToken(pair, address);
+  } catch (e) {
+    document.getElementById("error").style.display = "block";
+    document.getElementById("error").textContent = "Error: " + e.message + " — try a known mint or one of the demos.";
+  }
+}
+
+function renderToken(pair, mint) {
+  document.getElementById("result").style.display = "block";
+  const base = pair.baseToken;
+
+  document.getElementById("symbol").textContent = base.symbol || "???";
+  document.getElementById("name").textContent = base.name || mint.slice(0,8)+"…";
+  document.getElementById("logo").src = base.logoURI || pair.info?.imageUrl || "";
+  document.getElementById("price").textContent = formatNum(pair.priceUsd);
+  document.getElementById("volume").textContent = formatNum(pair.volume?.h24);
+  document.getElementById("liq").textContent = formatNum(pair.liquidity?.usd);
+  const ch = pair.priceChange?.h24 || 0;
+  document.getElementById("change").textContent = (ch >= 0 ? "+" : "") + ch.toFixed(1) + "%";
+  document.getElementById("change").style.color = ch >= 0 ? "#00ff9d" : "#ff2a6d";
+
+  // Clear previous effects
+  document.querySelectorAll(".gun, .runner, .banner").forEach(el => el.remove());
+  document.getElementById("bundleLight").classList.remove("active");
+  document.getElementById("devLight").classList.remove("active");
+
+  // --- Fun heuristic flags (replace with real APIs later) ---
+  // These are playful demos based on simple rules + randomness so the effects always show something interesting
+  const vol = pair.volume?.h24 || 0;
+  const liq = pair.liquidity?.usd || 0;
+  const isHighVolumeLowLiq = vol > liq * 5 && vol > 50000;
+  const isBundled = Math.random() > 0.55 || (base.symbol && base.symbol.length < 4);
+  const hasSnipers = Math.random() > 0.45;
+  const isRugDev = Math.random() > 0.6;
+
+  // Bundled warning light
+  const bundleText = document.getElementById("bundleText");
+  if (isBundled) {
+    document.getElementById("bundleLight").classList.add("active");
+    bundleText.innerHTML = "⚠️ <b>Possible bundle detected</b> — high concentration or same-block buys (heuristic)";
+  } else {
+    bundleText.textContent = "No obvious bundle pattern in this quick scan";
+  }
+
+  // Sniper guns on chart
+  if (hasSnipers) {
+    const chart = document.getElementById("chart");
+    for (let i = 0; i < 4; i++) {
+      const gun = document.createElement("div");
+      gun.className = "gun";
+      gun.textContent = "🔫";
+      gun.style.animationDelay = (i * 0.8) + "s";
+      gun.style.top = (15 + i * 18) + "%";
+      chart.appendChild(gun);
+    }
+  }
+
+  // Serial rugger — red light + dancing banners
+  const devText = document.getElementById("devText");
+  if (isRugDev) {
+    document.getElementById("devLight").classList.add("active");
+    devText.innerHTML = "🚨 <b>Dev history looks spicy</b> — possible previous rugs (demo flag)";
+    const devSec = document.querySelector(".dev-section");
+    const pastRugs = ["$RUG1", "$FAKE", "$GONE", "$SCAM"];
+    pastRugs.forEach((name, i) => {
+      const b = document.createElement("div");
+      b.className = "banner";
+      b.textContent = name;
+      b.style.left = (10 + i * 22) + "%";
+      b.style.top = (20 + (i % 2) * 30) + "%";
+      b.style.animationDelay = (i * 0.4) + "s";
+      devSec.appendChild(b);
+    });
+  } else {
+    devText.textContent = "No strong rug signals in this scan";
+  }
+
+  // Volume altered — emoji running away from holders
+  if (isHighVolumeLowLiq) {
+    const holders = document.querySelector(".holders-section");
+    const runner = document.createElement("div");
+    runner.className = "runner";
+    runner.textContent = "🏃‍♂️💨";
+    holders.appendChild(runner);
+    bundleText.innerHTML += "<br><small>Volume looks spicy vs liquidity — possible wash/fake volume</small>";
+  }
+}
+
+function loadDemo(mint) {
+  document.getElementById("mint").value = mint;
+  scan(mint);
+}
+
+// Allow Enter key
+document.getElementById("mint").addEventListener("keypress", e => {
+  if (e.key === "Enter") scan();
+});
+</script>
+</body>
+</html>
