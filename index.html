@@ -3,187 +3,153 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VibeScan — Fun Solana Token Scanner</title>
+<title>VibeScan Pro — Interactive Solana Scanner</title>
 <style>
   :root {
-    --bg: #0a0a0f;
-    --card: #12121a;
+    --bg: #07070c;
+    --card: #111118;
     --accent: #00ff9d;
     --danger: #ff2a6d;
     --warning: #ffaa00;
-    --text: #e0e0e0;
+    --text: #e8e8e8;
+    --muted: #888;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: var(--bg);
+    background: radial-gradient(circle at top, #1a0a2e, #07070c 60%);
     color: var(--text);
     font-family: 'Segoe UI', system-ui, sans-serif;
     min-height: 100vh;
-    overflow-x: hidden;
   }
-  .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
   h1 {
     text-align: center;
-    font-size: 2.4rem;
-    background: linear-gradient(90deg, #00ff9d, #00d4ff);
+    font-size: 2.6rem;
+    background: linear-gradient(90deg, #00ff9d, #00d4ff, #ff2a6d);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
-  .subtitle { text-align: center; color: #888; margin-bottom: 24px; }
-  .search-box {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-  }
+  .subtitle { text-align: center; color: var(--muted); margin-bottom: 24px; font-size: 0.95rem; }
+  .search-box { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
   input {
-    flex: 1;
-    min-width: 280px;
-    padding: 14px 18px;
-    border-radius: 12px;
-    border: 2px solid #333;
-    background: #1a1a24;
-    color: white;
-    font-size: 1rem;
+    flex: 1; min-width: 280px; padding: 14px 18px; border-radius: 12px;
+    border: 2px solid #2a2a3a; background: #151520; color: white; font-size: 1rem;
   }
   button {
-    padding: 14px 28px;
-    border-radius: 12px;
-    border: none;
-    background: var(--accent);
-    color: #000;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 1rem;
+    padding: 14px 28px; border-radius: 12px; border: none; background: var(--accent);
+    color: #000; font-weight: bold; cursor: pointer; font-size: 1rem;
   }
-  button:hover { filter: brightness(1.1); }
-  .grid {
-    display: grid;
-    grid-template-columns: 1.4fr 1fr;
-    gap: 20px;
-  }
-  @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+  button:hover { filter: brightness(1.15); }
+  .grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
   .card {
-    background: var(--card);
-    border-radius: 16px;
-    padding: 20px;
-    position: relative;
-    overflow: hidden;
-    border: 1px solid #222;
+    background: var(--card); border-radius: 18px; padding: 22px;
+    border: 1px solid #222; position: relative; overflow: hidden;
   }
-  .card h2 { margin-bottom: 12px; font-size: 1.2rem; }
-  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-  .stat { background: #1a1a24; padding: 10px; border-radius: 10px; }
-  .stat span { display: block; font-size: 0.75rem; color: #888; }
-  .stat strong { font-size: 1.1rem; }
+  .card h2 { margin-bottom: 14px; font-size: 1.25rem; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .stat { background: #1a1a26; padding: 12px; border-radius: 12px; }
+  .stat span { display: block; font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat strong { font-size: 1.15rem; }
   .chart-area {
-    height: 220px;
-    background: #0d0d14;
-    border-radius: 12px;
-    position: relative;
-    overflow: hidden;
-    border: 1px solid #222;
+    height: 240px; background: #0a0a12; border-radius: 14px; position: relative;
+    overflow: hidden; border: 1px solid #1f1f2a; cursor: crosshair;
   }
   .holders-section, .dev-section {
-    margin-top: 16px;
-    padding: 12px;
-    background: #1a1a24;
-    border-radius: 12px;
-    position: relative;
+    margin-top: 16px; padding: 14px; background: #1a1a26; border-radius: 14px; position: relative;
   }
-  /* Warning lights */
   .warning-light {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: #333;
-    box-shadow: 0 0 0 transparent;
-    transition: all 0.3s;
+    position: absolute; top: 12px; right: 12px; width: 26px; height: 26px; border-radius: 50%;
+    background: #333; cursor: pointer; transition: all 0.2s;
   }
   .warning-light.active {
     background: var(--warning);
-    box-shadow: 0 0 20px var(--warning), 0 0 40px var(--warning);
-    animation: pulse 0.6s infinite alternate;
+    box-shadow: 0 0 18px var(--warning), 0 0 36px var(--warning);
+    animation: pulse 0.7s infinite alternate;
   }
   .red-light.active {
     background: var(--danger);
-    box-shadow: 0 0 20px var(--danger), 0 0 40px var(--danger);
-    animation: pulse 0.4s infinite alternate;
+    box-shadow: 0 0 18px var(--danger), 0 0 36px var(--danger);
+    animation: pulse 0.45s infinite alternate;
   }
-  @keyframes pulse {
-    from { transform: scale(1); opacity: 1; }
-    to { transform: scale(1.15); opacity: 0.8; }
-  }
-  /* Emoji guns running on chart */
+  @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.18); } }
   .gun {
-    position: absolute;
-    font-size: 22px;
-    animation: runGun 4s linear infinite;
-    pointer-events: none;
+    position: absolute; font-size: 26px; cursor: pointer; z-index: 5;
+    animation: runGun 5s linear infinite; filter: drop-shadow(0 0 6px #ff2a6d);
   }
+  .gun:hover { transform: scale(1.3); }
   @keyframes runGun {
-    0% { left: -30px; top: 20%; }
-    25% { top: 40%; }
-    50% { top: 15%; }
-    75% { top: 55%; }
-    100% { left: 105%; top: 30%; }
+    0% { left: -40px; top: 25%; }
+    30% { top: 50%; }
+    60% { top: 18%; }
+    100% { left: 105%; top: 40%; }
   }
-  /* Running away emoji */
   .runner {
-    position: absolute;
-    font-size: 28px;
-    animation: runAway 2.5s linear infinite;
-    pointer-events: none;
+    position: absolute; font-size: 30px; cursor: pointer; z-index: 5;
+    animation: runAway 3s linear infinite;
   }
+  .runner:hover { transform: scale(1.2); }
   @keyframes runAway {
-    0% { left: 40%; top: 50%; opacity: 1; }
-    100% { left: 110%; top: 20%; opacity: 0; }
+    0% { left: 30%; top: 45%; opacity: 1; }
+    100% { left: 115%; top: 10%; opacity: 0; }
   }
-  /* Dancing banners */
   .banner {
-    position: absolute;
-    background: #ff2a6d;
-    color: white;
-    font-size: 11px;
-    padding: 4px 8px;
-    border-radius: 6px;
-    white-space: nowrap;
-    animation: dance 3s ease-in-out infinite;
-    pointer-events: none;
+    position: absolute; background: linear-gradient(135deg, #ff2a6d, #ff6b9d);
+    color: white; font-size: 11px; font-weight: bold; padding: 5px 10px; border-radius: 8px;
+    cursor: pointer; animation: dance 2.8s ease-in-out infinite; z-index: 5;
+    box-shadow: 0 4px 12px rgba(255,42,109,0.4);
   }
+  .banner:hover { transform: scale(1.15) !important; }
   @keyframes dance {
-    0%, 100% { transform: translateY(0) rotate(-5deg); }
-    50% { transform: translateY(-12px) rotate(5deg); }
+    0%, 100% { transform: translateY(0) rotate(-6deg); }
+    50% { transform: translateY(-14px) rotate(6deg); }
   }
-  .token-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-  .token-header img { width: 48px; height: 48px; border-radius: 50%; background: #333; }
+  .token-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .token-header img { width: 52px; height: 52px; border-radius: 50%; background: #222; border: 2px solid #333; }
   .error { color: #ff5555; text-align: center; padding: 20px; }
-  .demo-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; justify-content: center; }
-  .demo-btns button { background: #333; color: white; padding: 8px 14px; font-size: 0.85rem; }
+  .demo-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; justify-content: center; }
+  .demo-btns button { background: #222; color: white; padding: 8px 16px; font-size: 0.85rem; }
+  /* Modal */
+  .modal {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+    z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(6px);
+  }
+  .modal.open { display: flex; }
+  .modal-content {
+    background: #16161f; border: 1px solid #333; border-radius: 18px; padding: 24px;
+    max-width: 520px; width: 90%; max-height: 80vh; overflow-y: auto; position: relative;
+  }
+  .modal-content h3 { margin-bottom: 12px; color: var(--accent); }
+  .close-modal {
+    position: absolute; top: 12px; right: 16px; font-size: 24px; cursor: pointer; color: #888;
+  }
+  .wallet-row {
+    background: #1e1e2a; padding: 10px 12px; border-radius: 10px; margin-bottom: 8px;
+    font-family: monospace; font-size: 0.85rem; display: flex; justify-content: space-between;
+  }
+  .wallet-row span { color: var(--muted); }
+  .click-hint { font-size: 0.75rem; color: #666; margin-top: 6px; }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>VibeScan</h1>
-  <p class="subtitle">Scan a Solana token — make the red flags dance</p>
+  <h1>VibeScan Pro</h1>
+  <p class="subtitle">Click the guns, banners, and lights — see the snipers, rugs, and bundlers</p>
 
   <div class="search-box">
-    <input id="mint" placeholder="Paste Solana mint address (e.g. a pump.fun token)" />
+    <input id="mint" placeholder="Paste Solana mint address" />
     <button onclick="scan()">Scan Token</button>
   </div>
   <div class="demo-btns">
-    <button onclick="loadDemo('EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm')">WIF (demo)</button>
-    <button onclick="loadDemo('DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263')">BONK (demo)</button>
+    <button onclick="loadDemo('EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm')">WIF</button>
+    <button onclick="loadDemo('DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263')">BONK</button>
     <button onclick="loadDemo('So11111111111111111111111111111111111111112')">SOL</button>
+    <button onclick="loadDemo('random')">Chaos Mode</button>
   </div>
 
-  <div id="result" style="display:none; margin-top: 20px;">
+  <div id="result" style="display:none;">
     <div class="grid">
-      <!-- Chart + price card -->
       <div class="card">
         <div class="token-header">
           <img id="logo" src="" alt="" />
@@ -199,25 +165,23 @@
           <div class="stat"><span>24h Change</span><strong id="change">—</strong></div>
         </div>
         <div class="chart-area" id="chart">
-          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#555;">Chart zone</div>
-          <!-- guns injected here -->
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#444;font-size:0.9rem;">Chart — guns are clickable</div>
         </div>
       </div>
 
-      <!-- Risk sections -->
       <div class="card">
-        <h2>Risk Signals</h2>
+        <h2>Interactive Risk Signals</h2>
         <div class="holders-section">
-          <strong>Holders / Distribution</strong>
-          <div class="warning-light" id="bundleLight"></div>
-          <div id="bundleText" style="margin-top:8px;font-size:0.9rem;color:#aaa;">Waiting for scan...</div>
-          <!-- runner injected here if volume altered -->
+          <strong>Holders / Bundles</strong>
+          <div class="warning-light" id="bundleLight" onclick="openBundlers()"></div>
+          <div id="bundleText" style="margin-top:10px;font-size:0.9rem;color:#aaa;">Waiting for scan...</div>
+          <div class="click-hint">Click the light to see bundlers</div>
         </div>
         <div class="dev-section">
           <strong>Developer</strong>
-          <div class="warning-light red-light" id="devLight"></div>
-          <div id="devText" style="margin-top:8px;font-size:0.9rem;color:#aaa;">Waiting for scan...</div>
-          <!-- banners injected here -->
+          <div class="warning-light red-light" id="devLight" onclick="openDevHistory()"></div>
+          <div id="devText" style="margin-top:10px;font-size:0.9rem;color:#aaa;">Waiting for scan...</div>
+          <div class="click-hint">Click banners or light for rug history</div>
         </div>
       </div>
     </div>
@@ -225,15 +189,81 @@
   <div id="error" class="error" style="display:none;"></div>
 </div>
 
+<!-- Modal -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <span class="close-modal" onclick="closeModal()">×</span>
+    <h3 id="modalTitle">Details</h3>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
 <script>
 const API = "https://api.dexscreener.com/latest/dex/tokens/";
 
+let currentData = {
+  snipers: [],
+  bundlers: [],
+  rugs: [],
+  volumeFlag: false
+};
+
 function formatNum(n) {
-  if (!n) return "—";
+  if (!n && n !== 0) return "—";
   if (n >= 1e9) return "$" + (n/1e9).toFixed(2) + "B";
   if (n >= 1e6) return "$" + (n/1e6).toFixed(2) + "M";
   if (n >= 1e3) return "$" + (n/1e3).toFixed(1) + "K";
   return "$" + Number(n).toFixed(4);
+}
+
+function shortAddr(a) { return a.slice(0,6) + "…" + a.slice(-4); }
+
+function generateMockData(forceChaos = false) {
+  const chaos = forceChaos || Math.random() > 0.4;
+  const snipers = [];
+  const bundlers = [];
+  const rugs = [];
+
+  const numSnipers = chaos ? 4 + Math.floor(Math.random()*3) : (Math.random() > 0.5 ? 2 : 0);
+  for (let i = 0; i < numSnipers; i++) {
+    snipers.push({
+      wallet: generateFakeAddr(),
+      buySol: (0.5 + Math.random()*8).toFixed(2),
+      holdMin: Math.floor(Math.random()*12),
+      profit: (Math.random()*40 - 5).toFixed(1),
+      sold: Math.random() > 0.3
+    });
+  }
+
+  const numBundlers = chaos ? 6 + Math.floor(Math.random()*5) : (Math.random() > 0.45 ? 3 : 0);
+  for (let i = 0; i < numBundlers; i++) {
+    bundlers.push({
+      wallet: generateFakeAddr(),
+      supplyPct: (0.8 + Math.random()*4.5).toFixed(2),
+      sameBlock: true,
+      stillHolding: Math.random() > 0.4
+    });
+  }
+
+  const numRugs = chaos ? 3 : (Math.random() > 0.55 ? 2 : 0);
+  const rugNames = ["$RUGPULL", "$FADE", "$GONE", "$EXIT", "$DUMP", "$SCAM"];
+  for (let i = 0; i < numRugs; i++) {
+    rugs.push({
+      name: rugNames[i % rugNames.length],
+      mint: generateFakeAddr(),
+      peakMc: (Math.random()*2 + 0.3).toFixed(1) + "M",
+      ruggedAfter: Math.floor(Math.random()*48) + "h"
+    });
+  }
+
+  return { snipers, bundlers, rugs, volumeFlag: chaos || Math.random() > 0.5 };
+}
+
+function generateFakeAddr() {
+  const chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+  let s = "";
+  for (let i = 0; i < 44; i++) s += chars[Math.floor(Math.random()*chars.length)];
+  return s;
 }
 
 async function scan(mint) {
@@ -243,29 +273,30 @@ async function scan(mint) {
   document.getElementById("result").style.display = "none";
 
   try {
-    const res = await fetch(API + address);
-    const data = await res.json();
-    if (!data.pairs || data.pairs.length === 0) throw new Error("No pairs found for this token");
+    let pair;
+    if (address === "random") {
+      pair = { baseToken: { symbol: "CHAOS", name: "Chaos Mode Token", logoURI: "" }, priceUsd: 0.000042, volume: {h24: 420000}, liquidity: {usd: 18000}, priceChange: {h24: 690} };
+    } else {
+      const res = await fetch(API + address);
+      const data = await res.json();
+      if (!data.pairs || data.pairs.length === 0) throw new Error("No pairs found");
+      pair = data.pairs.filter(p => p.chainId === "solana").sort((a,b) => (b.liquidity?.usd||0) - (a.liquidity?.usd||0))[0] || data.pairs[0];
+    }
 
-    // Prefer Solana pair with highest liquidity
-    const pair = data.pairs
-      .filter(p => p.chainId === "solana")
-      .sort((a,b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0))[0]
-      || data.pairs[0];
-
+    currentData = generateMockData(address === "random");
     renderToken(pair, address);
   } catch (e) {
     document.getElementById("error").style.display = "block";
-    document.getElementById("error").textContent = "Error: " + e.message + " — try a known mint or one of the demos.";
+    document.getElementById("error").textContent = "Error: " + e.message;
   }
 }
 
 function renderToken(pair, mint) {
   document.getElementById("result").style.display = "block";
-  const base = pair.baseToken;
+  const base = pair.baseToken || { symbol: "???", name: "Unknown" };
 
   document.getElementById("symbol").textContent = base.symbol || "???";
-  document.getElementById("name").textContent = base.name || mint.slice(0,8)+"…";
+  document.getElementById("name").textContent = base.name || mint.slice(0,10)+"…";
   document.getElementById("logo").src = base.logoURI || pair.info?.imageUrl || "";
   document.getElementById("price").textContent = formatNum(pair.priceUsd);
   document.getElementById("volume").textContent = formatNum(pair.volume?.h24);
@@ -274,79 +305,149 @@ function renderToken(pair, mint) {
   document.getElementById("change").textContent = (ch >= 0 ? "+" : "") + ch.toFixed(1) + "%";
   document.getElementById("change").style.color = ch >= 0 ? "#00ff9d" : "#ff2a6d";
 
-  // Clear previous effects
+  // Clear old effects
   document.querySelectorAll(".gun, .runner, .banner").forEach(el => el.remove());
   document.getElementById("bundleLight").classList.remove("active");
   document.getElementById("devLight").classList.remove("active");
 
-  // --- Fun heuristic flags (replace with real APIs later) ---
-  // These are playful demos based on simple rules + randomness so the effects always show something interesting
-  const vol = pair.volume?.h24 || 0;
-  const liq = pair.liquidity?.usd || 0;
-  const isHighVolumeLowLiq = vol > liq * 5 && vol > 50000;
-  const isBundled = Math.random() > 0.55 || (base.symbol && base.symbol.length < 4);
-  const hasSnipers = Math.random() > 0.45;
-  const isRugDev = Math.random() > 0.6;
+  const { snipers, bundlers, rugs, volumeFlag } = currentData;
 
-  // Bundled warning light
+  // Bundle light
   const bundleText = document.getElementById("bundleText");
-  if (isBundled) {
+  if (bundlers.length > 0) {
     document.getElementById("bundleLight").classList.add("active");
-    bundleText.innerHTML = "⚠️ <b>Possible bundle detected</b> — high concentration or same-block buys (heuristic)";
+    bundleText.innerHTML = `⚠️ <b>${bundlers.length} potential bundlers</b> detected (same-block / clustered)`;
   } else {
-    bundleText.textContent = "No obvious bundle pattern in this quick scan";
+    bundleText.textContent = "No strong bundle pattern in this scan";
   }
 
-  // Sniper guns on chart
-  if (hasSnipers) {
+  // Guns for snipers
+  if (snipers.length > 0) {
     const chart = document.getElementById("chart");
-    for (let i = 0; i < 4; i++) {
+    snipers.forEach((s, i) => {
       const gun = document.createElement("div");
       gun.className = "gun";
       gun.textContent = "🔫";
-      gun.style.animationDelay = (i * 0.8) + "s";
-      gun.style.top = (15 + i * 18) + "%";
+      gun.style.animationDelay = (i * 0.9) + "s";
+      gun.style.top = (12 + i * 16) + "%";
+      gun.onclick = () => openSniper(s, i);
       chart.appendChild(gun);
-    }
+    });
   }
 
-  // Serial rugger — red light + dancing banners
+  // Dev rugs + banners
   const devText = document.getElementById("devText");
-  if (isRugDev) {
+  if (rugs.length > 0) {
     document.getElementById("devLight").classList.add("active");
-    devText.innerHTML = "🚨 <b>Dev history looks spicy</b> — possible previous rugs (demo flag)";
+    devText.innerHTML = `🚨 <b>${rugs.length} previous rugs</b> linked to this deployer style`;
     const devSec = document.querySelector(".dev-section");
-    const pastRugs = ["$RUG1", "$FAKE", "$GONE", "$SCAM"];
-    pastRugs.forEach((name, i) => {
+    rugs.forEach((rug, i) => {
       const b = document.createElement("div");
       b.className = "banner";
-      b.textContent = name;
-      b.style.left = (10 + i * 22) + "%";
-      b.style.top = (20 + (i % 2) * 30) + "%";
-      b.style.animationDelay = (i * 0.4) + "s";
+      b.textContent = rug.name;
+      b.style.left = (8 + i * 28) + "%";
+      b.style.top = (18 + (i % 2) * 35) + "%";
+      b.style.animationDelay = (i * 0.35) + "s";
+      b.onclick = () => openRug(rug);
       devSec.appendChild(b);
     });
   } else {
     devText.textContent = "No strong rug signals in this scan";
   }
 
-  // Volume altered — emoji running away from holders
-  if (isHighVolumeLowLiq) {
+  // Volume runner
+  if (volumeFlag) {
     const holders = document.querySelector(".holders-section");
     const runner = document.createElement("div");
     runner.className = "runner";
     runner.textContent = "🏃‍♂️💨";
+    runner.onclick = () => openVolume();
     holders.appendChild(runner);
-    bundleText.innerHTML += "<br><small>Volume looks spicy vs liquidity — possible wash/fake volume</small>";
+    if (bundlers.length > 0) bundleText.innerHTML += "<br><small>Volume looks elevated vs liquidity</small>";
   }
 }
 
+function openSniper(s, i) {
+  document.getElementById("modalTitle").textContent = `Sniper #${i+1}`;
+  document.getElementById("modalBody").innerHTML = `
+    <div class="wallet-row"><span>Wallet</span> ${shortAddr(s.wallet)}</div>
+    <div class="wallet-row"><span>Buy size</span> ${s.buySol} SOL</div>
+    <div class="wallet-row"><span>Hold time</span> ${s.holdMin} min</div>
+    <div class="wallet-row"><span>Est. PnL</span> ${s.profit}%</div>
+    <div class="wallet-row"><span>Status</span> ${s.sold ? "Already sold" : "Still holding"}</div>
+    <p style="margin-top:12px;color:#888;font-size:0.85rem;">Early buyer who exited quickly. Click other guns for more.</p>
+  `;
+  document.getElementById("modal").classList.add("open");
+}
+
+function openBundlers() {
+  if (currentData.bundlers.length === 0) {
+    document.getElementById("modalTitle").textContent = "Bundlers";
+    document.getElementById("modalBody").innerHTML = "<p>No bundlers flagged in this scan.</p>";
+  } else {
+    document.getElementById("modalTitle").textContent = `Bundlers (${currentData.bundlers.length})`;
+    let html = currentData.bundlers.map(b => `
+      <div class="wallet-row">
+        <span>${shortAddr(b.wallet)}</span>
+        <span>${b.supplyPct}% supply · ${b.stillHolding ? "holding" : "sold"}</span>
+      </div>
+    `).join("");
+    html += `<p style="margin-top:12px;color:#888;font-size:0.85rem;">Clustered early buys (same block / similar funding pattern). High concentration = higher dump risk.</p>`;
+    document.getElementById("modalBody").innerHTML = html;
+  }
+  document.getElementById("modal").classList.add("open");
+}
+
+function openRug(rug) {
+  document.getElementById("modalTitle").textContent = `Previous Rug: ${rug.name}`;
+  document.getElementById("modalBody").innerHTML = `
+    <div class="wallet-row"><span>Token</span> ${rug.name}</div>
+    <div class="wallet-row"><span>Mint</span> ${shortAddr(rug.mint)}</div>
+    <div class="wallet-row"><span>Peak MC</span> $${rug.peakMc}</div>
+    <div class="wallet-row"><span>Rugged after</span> ${rug.ruggedAfter}</div>
+    <p style="margin-top:12px;color:#888;font-size:0.85rem;">Pattern matches previous tokens associated with this deployer style.</p>
+  `;
+  document.getElementById("modal").classList.add("open");
+}
+
+function openDevHistory() {
+  if (currentData.rugs.length === 0) {
+    document.getElementById("modalTitle").textContent = "Dev History";
+    document.getElementById("modalBody").innerHTML = "<p>No previous rugs flagged.</p>";
+  } else {
+    document.getElementById("modalTitle").textContent = "Dev Rug History";
+    let html = currentData.rugs.map(r => `
+      <div class="wallet-row" style="cursor:pointer" onclick="openRug(${JSON.stringify(r).replace(/"/g,'"')})">
+        <span>${r.name}</span> <span>peaked $${r.peakMc}</span>
+      </div>
+    `).join("");
+    document.getElementById("modalBody").innerHTML = html + `<p style="margin-top:12px;color:#888;font-size:0.85rem;">Click a banner on the main view for details.</p>`;
+  }
+  document.getElementById("modal").classList.add("open");
+}
+
+function openVolume() {
+  document.getElementById("modalTitle").textContent = "Volume Signal";
+  document.getElementById("modalBody").innerHTML = `
+    <p>24h volume looks elevated relative to liquidity.</p>
+    <p style="margin-top:10px;color:#888;font-size:0.9rem;">Possible wash trading, bot volume, or organic hype. Cross-check with unique makers and holder growth.</p>
+  `;
+  document.getElementById("modal").classList.add("open");
+}
+
+function closeModal() {
+  document.getElementById("modal").classList.remove("open");
+}
+
+document.getElementById("modal").onclick = (e) => {
+  if (e.target.id === "modal") closeModal();
+};
+
 function loadDemo(mint) {
-  document.getElementById("mint").value = mint;
+  document.getElementById("mint").value = mint === "random" ? "" : mint;
   scan(mint);
 }
 
-// Allow Enter key
 document.getElementById("mint").addEventListener("keypress", e => {
   if (e.key === "Enter") scan();
 });
